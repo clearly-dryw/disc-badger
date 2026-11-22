@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "disc-badger"
+version = "0.0.0"
+description = "Rips scratched DVDs, Blu-rays, and 4K UHDs."
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Video :: Conversion",
+]
+authors = [{ name = "Dryw Wade Clere" }]
+
+[project.urls]
+Repository = "https://github.com/clearly-dryw/disc-badger"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/disc_badger"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/disc_badger", "README.md", "LICENSE", "pyproject.toml"]

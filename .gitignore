@@ -1,0 +1,38 @@
+# Private, machine-specific notes for Claude sessions (local paths, private links)
+CLAUDE.local.md
+
+# Disc images, video and rip work files: large, and copies of copyrighted discs
+*.iso
+*.img
+*.mkv
+*.vob
+*.m2ts
+*.mpls
+*.lock
+*.tmp
+
+# Decryption key caches, key files and logs that may print keys
+dvdcss/
+*dvdcss*.log
+KEYDB.cfg
+*.keydb
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
