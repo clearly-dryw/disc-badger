@@ -9,7 +9,7 @@ description = "Rips scratched DVDs, Blu-rays, and 4K UHDs."
 readme = "README.md"
 license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 1 - Planning",
     "Environment :: Console",
@@ -37,18 +37,43 @@ dev = [
 
 [tool.ruff]
 line-length = 80
-target-version = "py310"
+target-version = "py312"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF"]
+# Every rule, minus the ones below. Each ignore says why.
+select = ["ALL"]
+ignore = [
+    "COM812",  # trailing commas: ruff format decides; the two would conflict
+    "D203",  # no blank line before a class docstring (D211 is used instead)
+    "D213",  # docstring summaries start on the first line (D212)
+    "EM101",  # exception messages are written inline, where they're read
+    "EM102",  # (same, for f-strings)
+    "TC003",  # without lazy annotations, type-only imports are still needed
+    "TRY003",  # (same as EM101: messages belong in the raise)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"src/disc_badger/cli/**" = [
+    "T201",  # the command line prints to the user on purpose
+]
+"tests/**" = [
+    "D1",  # tests are named for what they check; no docstrings required
+    "S101",  # pytest checks with assert
+]
+
+[tool.ruff.lint.flake8-copyright]
+# Every file starts with the license line instead of a copyright notice.
+notice-rgx = "SPDX-License-Identifier: GPL-3.0-or-later"
 
 [tool.pyright]
 include = ["src", "tests"]
-pythonVersion = "3.10"
+pythonVersion = "3.12"
 typeCheckingMode = "strict"
 venvPath = "."
 venv = ".venv"
+# Ignoring a result must be explicit: `_ = call()`, with a comment saying why.
+reportUnusedCallResult = "error"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
