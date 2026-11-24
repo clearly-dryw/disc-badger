@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling>=1.27"]
+requires = ["hatchling==1.33.0"]
 build-backend = "hatchling.build"
 
 [project]
@@ -29,10 +29,19 @@ packages = ["src/disc_badger"]
 include = ["src/disc_badger", "README.md", "LICENSE", "pyproject.toml"]
 
 [dependency-groups]
+# Exact versions, so a new release can't change what runs. Everything they
+# depend on is locked, with hashes, in requirements-dev.txt; upgrades are
+# deliberate, in their own commit. hatchling, editables and pip are here so
+# the development install and build use locked versions too, and uv
+# generates the lock file.
 dev = [
-    "pyright[nodejs]>=1.1.414",
-    "pytest>=9.2.0",
-    "ruff>=0.17.6",
+    "editables==0.6",
+    "hatchling==1.33.0",
+    "pip==26.3",
+    "pyright[nodejs]==1.1.414",
+    "pytest==9.2.0",
+    "ruff==0.17.6",
+    "uv==0.13.9",
 ]
 
 [tool.ruff]
