@@ -18,6 +18,8 @@ KEYDB.cfg
 *.keydb
 
 # Python
+# uv's lock file is committed, unlike the rip work files' lock files above.
+!/uv.lock
 __pycache__/
 *.py[cod]
 *.egg-info/

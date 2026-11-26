@@ -30,19 +30,26 @@ include = ["src/disc_badger", "README.md", "LICENSE", "pyproject.toml"]
 
 [dependency-groups]
 # Exact versions, so a new release can't change what runs. Everything they
-# depend on is locked, with hashes, in requirements-dev.txt; upgrades are
-# deliberate, in their own commit. hatchling, editables and pip are here so
-# the development install and build use locked versions too, and uv
-# generates the lock file.
+# depend on is locked, with hashes, in uv.lock; upgrades are deliberate, in
+# their own commit. hatchling and editables are here so the development install
+# builds Disc Badger with locked versions too.
 dev = [
     "editables==0.6",
     "hatchling==1.33.0",
-    "pip==26.3",
     "pyright[nodejs]==1.1.414",
     "pytest==9.2.0",
     "ruff==0.17.6",
-    "uv==0.13.9",
 ]
+
+[tool.uv]
+# The oldest uv that reads and writes uv.lock as it is.
+required-version = ">=0.13.9"
+# Lock only files at least a week old, so a broken or malicious release has time
+# to be noticed and withdrawn first.
+exclude-newer = "1 week"
+# Build Disc Badger with the locked hatchling and editables, installed first,
+# rather than with the newest ones in a separate build environment.
+no-build-isolation-package = ["disc-badger"]
 
 [tool.ruff]
 line-length = 80
