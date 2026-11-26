@@ -1,4 +1,4 @@
-# Private, machine-specific notes for Claude sessions (local paths, private links)
+# Private notes for Claude sessions on one machine (local paths, private links)
 CLAUDE.local.md
 
 # Disc images, video and rip work files: large, and copies of copyrighted discs
@@ -9,6 +9,8 @@ CLAUDE.local.md
 *.m2ts
 *.mpls
 *.lock
+# but not uv's lock file, which is committed
+!/uv.lock
 *.tmp
 
 # Decryption key caches, key files and logs that may print keys
@@ -18,8 +20,6 @@ KEYDB.cfg
 *.keydb
 
 # Python
-# uv's lock file is committed, unlike the rip work files' lock files above.
-!/uv.lock
 __pycache__/
 *.py[cod]
 *.egg-info/

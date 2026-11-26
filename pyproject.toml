@@ -42,7 +42,7 @@ dev = [
 ]
 
 [tool.uv]
-# The oldest uv that reads and writes uv.lock as it is.
+# The oldest uv that reads and writes uv.lock as it is. CI uses this version.
 required-version = ">=0.13.9"
 # Lock only files at least a week old, so a broken or malicious release has time
 # to be noticed and withdrawn first.
@@ -54,7 +54,7 @@ no-build-isolation-package = ["disc-badger"]
 [tool.ruff]
 line-length = 80
 target-version = "py312"
-src = ["src", "tests"]
+src = ["src", "tests", "tools"]
 
 [tool.ruff.lint]
 # Every rule, minus the ones below. Each ignore says why.
@@ -73,9 +73,16 @@ ignore = [
 "src/disc_badger/cli/**" = [
     "T201",  # the command line prints to the user on purpose
 ]
+"tools/**" = [
+    # Developer tools run git, Python and uv by full path, with only the
+    # repository's own file names and settings as arguments.
+    "S603",
+    "T201",  # developer tools print their findings on purpose
+]
 "tests/**" = [
     "D1",  # tests are named for what they check; no docstrings required
     "S101",  # pytest checks with assert
+    "S603",  # a test may run git on a repository it makes for itself
 ]
 
 [tool.ruff.lint.flake8-copyright]
@@ -83,14 +90,28 @@ ignore = [
 notice-rgx = "SPDX-License-Identifier: GPL-3.0-or-later"
 
 [tool.pyright]
-include = ["src", "tests"]
+# tools/check_all.py gives pyright every Python file git tracks, so no folders
+# are listed here.
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
 venvPath = "."
 venv = ".venv"
+# Where imports are found: Disc Badger's source, which pyright adds by itself
+# only when nothing is listed here, and the tools, which the tests import by
+# name, as pytest's settings below allow.
+extraPaths = ["src", "tools"]
 # Ignoring a result must be explicit: `_ = call()`, with a comment saying why.
 reportUnusedCallResult = "error"
 
+# The text check, tools/check_text.py, reads every file git tracks but these.
+[tool.check-text]
+exclude = [
+    "uv.lock",  # written by uv; its long lines can't wrap
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# The tools run as scripts and import each other's modules by name, such as
+# `exit_code`; the tests need their folder on the path to do the same.
+pythonpath = ["tools"]
 addopts = ["--strict-markers", "--strict-config"]

@@ -1,0 +1,113 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# Check every push to main and every pull request: the checks in
+# tools/check_all.py, then the tests on each supported system and Python.
+#
+# Everything is pinned to an exact version: actions to a full commit, machines
+# and Python to a version, uv to the oldest pyproject.toml allows, and Python
+# packages to a version and hash in uv.lock. Dependabot proposes updates for the
+# actions and packages; the machine, Python and uv versions are updated by hand.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# The checks only read the repository.
+permissions:
+  contents: read
+
+# Every step runs in bash, on Windows too, so a step stops at its first failing
+# command; PowerShell, Windows' default, only reports the last one's result.
+defaults:
+  run:
+    shell: bash
+
+# A newer push to the same pull request cancels the older run. Runs on main all
+# finish, one after another, so every push there gets a result.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  checks:
+    # Branch protection requires checks by name, so this name stays put.
+    name: Checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      # The comment after each commit gives the release it belongs to.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12.10"
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          # The oldest uv that pyproject.toml's required-version allows: the one
+          # version it names.
+          resolution-strategy: lowest
+          # Download every package afresh, so uv checks each one's hash.
+          enable-cache: false
+      # Only the packages in the lock file, each checked against its hash, for
+      # the Python installed above; Disc Badger itself is built with the locked
+      # hatchling.
+      - name: Install
+        env:
+          PYTHON: ${{ steps.python.outputs.python-path }}
+        run: uv sync --locked --python "$PYTHON"
+      # The same script contributors run, so CI and their checks agree; the
+      # tests run in the job below.
+      - name: Check
+        run: uv run --locked python tools/check_all.py --no-tests
+
+  tests:
+    name: Tests (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      # Finish every combination, so one failure doesn't hide others.
+      fail-fast: false
+      matrix:
+        os: [windows-2025, ubuntu-24.04, macos-15]
+        # The newest release of each version that setup-python has for every
+        # system: later security releases are often built for Linux only.
+        python: ["3.12.10", "3.13.17", "3.14.10", "3.15.2"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          resolution-strategy: lowest
+          enable-cache: false
+      - name: Install
+        env:
+          PYTHON: ${{ steps.python.outputs.python-path }}
+        run: uv sync --locked --python "$PYTHON"
+      - name: Test
+        run: uv run --locked python -m pytest
+
+  # Branch protection requires this one job, not each test run, whose names
+  # change with the matrix. It runs even when a test run fails or is cancelled,
+  # so it can report that instead of being skipped.
+  tests-passed:
+    name: Tests passed
+    needs: tests
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check every test run passed
+        env:
+          RESULT: ${{ needs.tests.result }}
+        run: |
+          echo "The test runs' result: $RESULT"
+          test "$RESULT" = success
